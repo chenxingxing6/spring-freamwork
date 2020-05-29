@@ -1,19 +1,3 @@
-/*
- * Copyright 2002-2017 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package org.springframework.transaction.support;
 
 import java.util.ArrayList;
@@ -33,46 +17,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * Central delegate that manages resources and transaction synchronizations per thread.
- * To be used by resource management code but not by typical application code.
- *
- * <p>Supports one resource per key without overwriting, that is, a resource needs
- * to be removed before a new one can be set for the same key.
- * Supports a list of transaction synchronizations if synchronization is active.
- *
- * <p>Resource management code should check for thread-bound resources, e.g. JDBC
- * Connections or Hibernate Sessions, via {@code getResource}. Such code is
- * normally not supposed to bind resources to threads, as this is the responsibility
- * of transaction managers. A further option is to lazily bind on first use if
- * transaction synchronization is active, for performing transactions that span
- * an arbitrary number of resources.
- *
- * <p>Transaction synchronization must be activated and deactivated by a transaction
- * manager via {@link #initSynchronization()} and {@link #clearSynchronization()}.
- * This is automatically supported by {@link AbstractPlatformTransactionManager},
- * and thus by all standard Spring transaction managers, such as
- * {@link org.springframework.transaction.jta.JtaTransactionManager} and
- * {@link org.springframework.jdbc.datasource.DataSourceTransactionManager}.
- *
- * <p>Resource management code should only register synchronizations when this
- * manager is active, which can be checked via {@link #isSynchronizationActive};
- * it should perform immediate resource cleanup else. If transaction synchronization
- * isn't active, there is either no current transaction, or the transaction manager
- * doesn't support transaction synchronization.
- *
- * <p>Synchronization is for example used to always return the same resources
- * within a JTA transaction, e.g. a JDBC Connection or a Hibernate Session for
- * any given DataSource or SessionFactory, respectively.
- *
- * @author Juergen Hoeller
- * @since 02.06.2003
- * @see #isSynchronizationActive
- * @see #registerSynchronization
  * @see TransactionSynchronization
- * @see AbstractPlatformTransactionManager#setTransactionSynchronization
- * @see org.springframework.transaction.jta.JtaTransactionManager
- * @see org.springframework.jdbc.datasource.DataSourceTransactionManager
- * @see org.springframework.jdbc.datasource.DataSourceUtils#getConnection
  */
 public abstract class TransactionSynchronizationManager {
 
@@ -97,19 +42,6 @@ public abstract class TransactionSynchronizationManager {
 			new NamedThreadLocal<>("Actual transaction active");
 
 
-	//-------------------------------------------------------------------------
-	// Management of transaction-associated resource handles
-	//-------------------------------------------------------------------------
-
-	/**
-	 * Return all resources that are bound to the current thread.
-	 * <p>Mainly for debugging purposes. Resource managers should always invoke
-	 * {@code hasResource} for a specific resource key that they are interested in.
-	 * @return a Map with resource keys (usually the resource factory) and resource
-	 * values (usually the active resource object), or an empty Map if there are
-	 * currently no resources bound
-	 * @see #hasResource
-	 */
 	public static Map<Object, Object> getResourceMap() {
 		Map<Object, Object> map = resources.get();
 		return (map != null ? Collections.unmodifiableMap(map) : Collections.emptyMap());
